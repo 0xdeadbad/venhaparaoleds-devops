@@ -4,12 +4,12 @@
 }:
 
 stdenv.mkDerivation {
-  pname = "Golang";
+  pname = "go";
   version = "1.24";
 
   src = fetchzip {
     url = "https://go.dev/dl/go1.24.0.linux-amd64.tar.gz";
-    hash = "sha256-eICnZSd/aYOmUJ8HJqzSoQN1EIuU80GOa47W/7tOysM=";
+    hash = "sha256-XVGiZCb1ugqNgnrtZBGrJeiCw5dvfluImcVpnnmZEVI=";
   };
 
   phases = [
@@ -20,6 +20,8 @@ stdenv.mkDerivation {
   installPhase = ''
     mkdir -p $out
 
-    cp go/.* $out
+    for f in $(ls); do
+        cp -r "$f" $out;
+    done
   '';
 }
