@@ -1,5 +1,5 @@
 {
-  description = "Zig dev env";
+  description = "Go dev env";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
@@ -33,10 +33,12 @@
               fetchzip = pkgs.fetchzip;
             }
           );
+          pandoc = pkgs.pandoc;
         in
         {
           default = go;
-          go = go;
+          inherit go;
+          inherit pandoc;
         }
       );
 
@@ -52,10 +54,9 @@
           );
         in
         {
-          default = pkgs.mkShell {
-            packages = [
-              go
-            ];
+          default = import ./shell.nix {
+            inherit pkgs;
+            inherit go;
           };
         }
       );
