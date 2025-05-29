@@ -1,4 +1,6 @@
-{ pkgs }:
+{
+  pkgs ? import <nixpkgs> { },
+}:
 let
   go = (
     import ./go.nix {
