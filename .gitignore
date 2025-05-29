@@ -3,3 +3,4 @@ venhaparaoleds-devops
 main
 .env
 result
+*.bkp

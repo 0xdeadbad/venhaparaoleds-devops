@@ -2,7 +2,6 @@ package routes
 
 import (
 	"encoding/json"
-	"log"
 
 	"github.com/0xdeadbad/venhaparaoleds-devops/models"
 	"github.com/gofiber/fiber/v2"
@@ -100,8 +99,6 @@ func applicantRouter(applicant fiber.Router, db *gorm.DB) error {
 			})
 		}
 
-		log.Printf("&&&&%+v\n", obj)
-
 		return c.Status(200).JSON(fiber.Map{
 			"status": "success",
 			"data":   obj,
@@ -167,8 +164,40 @@ func applicantRouter(applicant fiber.Router, db *gorm.DB) error {
 
 func concourseRouter(concourse fiber.Router, db *gorm.DB) error {
 	concourse.Get("/:code", func(c *fiber.Ctx) error {
+		c.Accepts("json", "text")
+		c.Accepts("application/json")
 
-		return nil
+		var code string
+		obj := new(models.Concourse)
+
+		if code = c.Params("code"); code == "" {
+			return c.Status(400).JSON(fiber.Map{
+				"status":  "error",
+				"message": "invalid code parameter",
+			})
+		}
+		obj.ConcCode = code
+
+		data, err := json.Marshal(obj)
+		if err != nil {
+			return c.Status(400).JSON(fiber.Map{
+				"status":  "error",
+				"message": err.Error(),
+			})
+		}
+
+		m := fiber.Map{}
+		if err := json.Unmarshal(data, &m); err != nil {
+			return c.Status(400).JSON(fiber.Map{
+				"status":  "error",
+				"message": err.Error(),
+			})
+		}
+
+		return c.Status(200).JSON(fiber.Map{
+			"status": "success",
+			"data":   m,
+		})
 	})
 
 	return nil

@@ -1,23 +1,34 @@
 {
-  pkgs ? (
-    let
-      sources = import ./nix/sources.nix;
-    in
-    import sources.nixpkgs {
-      overlays = [
-        (import "${sources.gomod2nix}/overlay.nix")
-      ];
+  pkgs,
+  go ? (
+    import ./go.nix {
+      stdenv = pkgs.stdenv;
+      fetchzip = pkgs.fetchzip;
     }
   ),
 }:
-
 let
-  goEnv = pkgs.mkGoEnv { pwd = ./.; };
+  ledsproj = (
+    import ./default {
+      inherit go;
+      inherit pkgs;
+    }
+  );
 in
 pkgs.mkShell {
   packages = [
-    goEnv
-    pkgs.gomod2nix
-    pkgs.niv
+    pkgs.yaml-language-server
+    pkgs.gopls
+    ledsproj
+    go
   ];
+
+  shellHook = ''
+    go get github.com/nsf/gocode
+    go get github.com/tpng/gopkgs
+    go get github.com/ramya-rao-a/go-outline
+    go get honnef.co/go/tools/staticcheck
+    go get golang.org/x/tools/cmd/guru
+    # go install golang.org/x/tools/gopls@latest
+  '';
 }

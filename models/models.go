@@ -20,7 +20,7 @@ type Concourse struct {
 	ID       uint
 	Org      string `json:"org"`
 	Edital   string `json:"edital"`
-	ConcCode uint64 `gorm:"primaryKey;uniqueIndex" json:"conc_code"`
+	ConcCode string `gorm:"primaryKey;uniqueIndex" json:"conc_code"`
 }
 
 type Vacancy struct {
