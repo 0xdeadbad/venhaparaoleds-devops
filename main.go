@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -11,71 +10,14 @@ import (
 	_ "time"
 
 	_ "github.com/0xdeadbad/venhaparaoleds-devops/docs"
+	"github.com/0xdeadbad/venhaparaoleds-devops/models"
+	"github.com/0xdeadbad/venhaparaoleds-devops/routes"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/swagger"
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
-
-type PgsqlCrudApi struct {
-	db *gorm.DB
-}
-
-func (p *PgsqlCrudApi) Create(a ...any) (*Concourse, error) {
-
-	if len(a) <= 0 {
-		return nil, errors.New("Method Create(...) needs at least one argument")
-	}
-
-	if _, ok := a[0].(string); !ok {
-		return nil, errors.New("Fist parameter of method Create(...) should be a string")
-	}
-	// TODO: write more checks
-
-	org := a[0].(string)
-	edital := a[1].(string)
-	code := a[2].(uint64)
-
-	obj := &Concourse{
-		Org:       org,
-		Edital:    edital,
-		ConcCode:  code,
-		Vacancies: []Vacancy{},
-		Model:     gorm.Model{},
-	}
-
-	res := p.db.Create(obj)
-
-	if res.Error != nil {
-		return nil, res.Error
-	}
-
-	return obj, nil
-}
-
-func (p *PgsqlCrudApi) Read(a ...any) (*Concourse, error) {
-
-	obj := &Concourse{ConcCode: a[0].(*Concourse).ConcCode}
-
-	res := p.db.First(obj)
-	if res.Error != nil {
-		return nil, res.Error
-	}
-
-	return obj, nil
-}
-func (p *PgsqlCrudApi) Update(a ...any) (*Concourse, error) {
-
-	return &Concourse{}, nil
-}
-
-func (p *PgsqlCrudApi) Delete(a ...any) (*Concourse, error) {
-
-	fmt.Println("DELETE")
-
-	return &Concourse{}, nil
-}
 
 func appGoroutine(ctx context.Context, cancel context.CancelCauseFunc, app *fiber.App) {
 	err := app.Listen(":3000")
@@ -136,23 +78,21 @@ func main() {
 		log.Fatal(err)
 	}
 
-	err = db.AutoMigrate(&Applicant{}, &Concourse{}, &Profession{}, &Vacancy{})
+	err = db.AutoMigrate(&models.Applicant{}, &models.Concourse{}, &models.Profession{}, &models.Vacancy{})
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	crud := &PgsqlCrudApi{
-		db: db,
-	}
+	apiRoute := app.Group("/api")
 
-	obj, err := crud.Read(&Concourse{ConcCode: uint64(65433)})
-	if err != nil {
-		log.Fatalln(err)
-	}
+	v1 := apiRoute.Group("/v1", func(c *fiber.Ctx) error { // middleware for /api/v1
+		c.Set("Version", "v1")
+		return c.Next()
+	})
 
-	fmt.Printf("%+v\n", obj)
+	routes.MainRouter(v1, db)
 
-	app.Get("/swagger/*", swagger.HandlerDefault) // default
+	app.Get("/swagger/*", swagger.HandlerDefault)
 
 	done := make(chan any, 1)
 	go func() {

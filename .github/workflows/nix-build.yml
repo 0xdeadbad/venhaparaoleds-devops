@@ -1,32 +1,21 @@
-name: nix - build environment
-
-on: push
-env:
-  DEV_SHELL_NAME: CI
+name: "Test"
+on:
+  pull_request:
+  push:
 jobs:
-  build:
+  tests:
     runs-on: ubuntu-latest
-
     steps:
-      - uses: actions/checkout@v3
-
-      # Docs to use Cachix: https://nix.dev/tutorials/continuous-integration-github-actions
-      - uses: cachix/install-nix-action@v17
-        with:
-          nix_path: nixpkgs=channel:nixos-unstable
-      - uses: cachix/cachix-action@v11
-        with:
-          name: mycache
-          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
-
-      - name: "Setup env"
-        uses: JRMurr/direnv-nix-action@v4.1.0
-        with:
-          # You already installed nix, so you can disable that step
-          install-nix: "false"
-          # You are using Cachix cache, so no need to use Github cache too
-          cache-store: "false"
-
-      - name: compile
-        run: go build -o server cmd/server/main.go cmd/server/orm.go
-        shell: bash
+    - uses: actions/checkout@v4
+    - uses: cachix/install-nix-action@v25
+      with:
+        nix_path: nixpkgs=channel:nixos-unstable
+    - uses: cachix/cachix-action@v14
+      with:
+        name: mycache
+        # If you chose signing key for write access
+        # signingKey: '${{ secrets.CACHIX_SIGNING_KEY }}'
+        # If you chose API tokens for write access OR if you have a private cache
+        authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+    - run: nix-build
+    - run: nix-shell --run "echo OK"
