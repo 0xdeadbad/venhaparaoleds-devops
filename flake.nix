@@ -34,9 +34,15 @@
             }
           );
           pandoc = pkgs.pandoc;
+          default = (
+            import ./default.nix {
+              inherit pkgs;
+              inherit go;
+            }
+          );
         in
         {
-          default = go;
+          inherit default;
           inherit go;
           inherit pandoc;
         }
