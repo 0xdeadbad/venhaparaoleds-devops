@@ -1,35 +1,19 @@
 {
-  pkgs ? import <nixpkgs> { },
-  go ? pkgs.go,
+  pkgs ? (
+    let
+      sources = import ./nix/sources.nix;
+    in
+    import sources.nixpkgs {
+      overlays = [
+        (import "${sources.gomod2nix}/overlay.nix")
+      ];
+    }
+  ),
 }:
-pkgs.stdenv.mkDerivation {
-  name = "ledsproj";
+pkgs.buildGoApplication {
+  pname = "ledsproj";
+  version = "0.1";
+  pwd = ./.;
   src = ./.;
-
-  # unpackPhase = ''
-  #   for srcFile in $src; do
-  #       cp -r $srcFile $(stripHash $srcFile)
-  #   done
-  # '';
-
-  nativeBuildInputs = [
-    go
-  ];
-
-  configurePhase = ''
-    export TMPGODIR="$TMPDIR/$(stripHash $srcFile)"
-    export TMPCACHEDIR="$TMPGODIR/cache"
-    export TMPOUTDIR="$TMPGODIR/out"
-    mkdir -p "$TMPOUTDIR"
-    mkdir -p "$TMPCACHEDIR"
-  '';
-
-  buildPhase = ''
-    CGO=0 GOCACHE="$TMPCACHEDIR" go build -ldflags "-s -w" -o "$TMPOUTDIR/$name" cmd/compiler/main.go
-  '';
-
-  installPhase = ''
-    mkdir -p $out/bin
-    cp $TMPOUTDIR/$name $out/bin
-  '';
+  modules = ./gomod2nix.toml;
 }

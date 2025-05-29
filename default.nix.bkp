@@ -1,0 +1,41 @@
+{
+  pkgs ? import <nixpkgs> { },
+  go ? pkgs.go,
+
+}:
+pkgs.stdenv.mkDerivation {
+  name = "ledsproj";
+  src = ./.;
+
+  # unpackPhase = ''
+  #   for srcFile in $src; do
+  #       cp -r $srcFile $(stripHash $srcFile)
+  #   done
+  # '';
+
+  nativeBuildInputs = [
+    go
+  ];
+
+  preConfigure = ''
+    export GOCACHE=$TMPDIR/go-cache
+    export GOPATH="$TMPDIR/go"
+  '';
+
+  configurePhase = ''
+    go mod tidy
+  '';
+
+  preBuild = ''
+    export HOME=$TMPDIR
+  '';
+
+  buildPhase = ''
+    go build -ldflags "-s -w" -o $TMPDIR/$name .
+  '';
+
+  installPhase = ''
+    mkdir -p $out/bin
+    cp $TMPDIR/$name $out/bin
+  '';
+}
