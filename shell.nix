@@ -1,5 +1,5 @@
 {
-  pkgs,
+  pkgs ? import <nixpkgs> { },
   go ? (
     import ./go.nix {
       stdenv = pkgs.stdenv;
@@ -9,8 +9,7 @@
 }:
 let
   ledsproj = (
-    import ./default {
-      inherit go;
+    import ./default.nix {
       inherit pkgs;
     }
   );

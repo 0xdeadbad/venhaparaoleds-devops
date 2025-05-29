@@ -2,6 +2,7 @@ package routes
 
 import (
 	"encoding/json"
+	"log"
 
 	"github.com/0xdeadbad/venhaparaoleds-devops/models"
 	"github.com/gofiber/fiber/v2"
@@ -154,6 +155,10 @@ func applicantRouter(applicant fiber.Router, db *gorm.DB) error {
 			})
 		}
 
+		count := res.Statement.RowsAffected
+
+		log.Printf("}}}}}}}}%d\n", count)
+
 		return c.Status(200).JSON(fiber.Map{
 			"status": "success",
 		})
@@ -178,6 +183,14 @@ func concourseRouter(concourse fiber.Router, db *gorm.DB) error {
 		}
 		obj.ConcCode = code
 
+		res := db.First(obj)
+		if err := res.Error; err != nil {
+			return c.Status(400).JSON(fiber.Map{
+				"status":  "error",
+				"message": err.Error(),
+			})
+		}
+
 		data, err := json.Marshal(obj)
 		if err != nil {
 			return c.Status(400).JSON(fiber.Map{
@@ -197,6 +210,86 @@ func concourseRouter(concourse fiber.Router, db *gorm.DB) error {
 		return c.Status(200).JSON(fiber.Map{
 			"status": "success",
 			"data":   m,
+		})
+	})
+
+	concourse.Post("/", func(c *fiber.Ctx) error {
+		obj := new(models.Concourse)
+
+		if err := c.BodyParser(obj); err != nil {
+			return c.Status(400).JSON(fiber.Map{
+				"status":  "error",
+				"message": err.Error(),
+			})
+		}
+
+		res := db.Create(obj)
+		if res.Error != nil {
+			return c.Status(400).JSON(fiber.Map{
+				"status":  "error",
+				"message": res.Error.Error(),
+			})
+		}
+
+		return c.Status(200).JSON(fiber.Map{
+			"status": "success",
+			"data":   obj,
+		})
+	})
+
+	concourse.Delete("/:code", func(c *fiber.Ctx) error {
+		var code string
+		obj := new(models.Concourse)
+
+		if code = c.Params("code"); code == "" {
+			return c.Status(400).JSON(fiber.Map{
+				"status":  "error",
+				"message": "invalid code parameter",
+			})
+		}
+		obj.ConcCode = code
+
+		res := db.Delete(obj)
+		if res.Error != nil {
+			return c.Status(400).JSON(fiber.Map{
+				"status":  "error",
+				"message": res.Error.Error(),
+			})
+		}
+
+		return c.Status(200).JSON(fiber.Map{
+			"status": "success",
+		})
+	})
+
+	concourse.Delete("/:code", func(c *fiber.Ctx) error {
+		var code string
+		obj := new(models.Concourse)
+
+		if code = c.Params("cpf"); code == "" {
+			return c.Status(400).JSON(fiber.Map{
+				"status":  "error",
+				"message": "invalid cpf parameter",
+			})
+		}
+		obj.ConcCode = code
+
+		res := db.Delete(obj)
+		if res.Error != nil {
+			return c.Status(400).JSON(fiber.Map{
+				"status":  "error",
+				"message": res.Error.Error(),
+			})
+		}
+
+		count := new(int64)
+		res.Count(count)
+
+		log.Printf("[[[[[[]]]]]]%d\n", count)
+
+		return c.Status(200).JSON(fiber.Map{
+			"status":   "success",
+			"affected": count,
 		})
 	})
 
