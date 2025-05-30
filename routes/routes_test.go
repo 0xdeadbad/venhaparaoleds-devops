@@ -54,7 +54,7 @@ func TestApplicant(t *testing.T) {
 	g := &models.Applicant{}
 
 	t.Run("Test Applicant POST", func(t *testing.T) {
-		profs := []models.Profession{
+		profs := []*models.Profession{
 			{
 				Name: "test1",
 			},
@@ -83,11 +83,18 @@ func TestApplicant(t *testing.T) {
 		if err != nil {
 			t.Fatalf("%s\n", err.Error())
 		}
-
 		req.Header.Set("Content-Type", "application/json")
+
 		res, err := app.Test(req, -1)
 		assert.Nil(t, err)
 		assert.Equal(t, 200, res.StatusCode)
+
+		// d, err := io.ReadAll(res.Body)
+		// if err != nil {
+		// 	t.Fatalf("%s\n", err.Error())
+		// }
+
+		// t.Logf("%s\n", string(d))
 	})
 
 	t.Run("Test Applicant GET", func(t *testing.T) {
@@ -137,6 +144,17 @@ func TestApplicant(t *testing.T) {
 		res, err := app.Test(req, -1)
 		assert.Nil(t, err)
 		assert.Equal(t, 200, res.StatusCode)
+
+		data, err := io.ReadAll(res.Body)
+		assert.Nil(t, err)
+
+		m := fiber.Map{}
+
+		if err := json.Unmarshal(data, &m); err != nil {
+			t.Fatalf("%s\n", err.Error())
+		}
+
+		t.Logf("%+v\n", m)
 	})
 
 	defer app.Shutdown()
@@ -244,7 +262,79 @@ func TestConcourse(t *testing.T) {
 	})
 
 	t.Run("Test Concourse Delete", func(t *testing.T) {
-		req, err := http.NewRequest("DELETE", "/api/v1/concourse/11121311", nil)
+		req, err := http.NewRequest("DELETE", "/api/v1/concourse/3532456", nil)
+		if err != nil {
+			t.Fatalf("%s\n", err.Error())
+		}
+
+		res, err := app.Test(req, -1)
+		assert.Nil(t, err)
+		assert.Equal(t, 200, res.StatusCode)
+	})
+
+	i := &models.Profession{}
+
+	t.Run("Test Profession POST", func(t *testing.T) {
+		i = &models.Profession{
+			Name:       "Teacher",
+			Applicants: []*models.Applicant{},
+		}
+
+		data, err := json.Marshal(i)
+		if err != nil {
+			t.Fatalf("%s\n", err.Error())
+		}
+
+		b := bytes.NewReader(data)
+		req, err := http.NewRequest("POST", "/api/v1/professon", b)
+		if err != nil {
+			t.Fatalf("%s\n", err.Error())
+		}
+
+		req.Header.Set("Content-Type", "application/json")
+		res, err := app.Test(req, -1)
+		assert.Nil(t, err)
+		assert.Equal(t, 200, res.StatusCode)
+	})
+
+	t.Run("Test Profession GET", func(t *testing.T) {
+		obj := new(models.Profession)
+		req, err := http.NewRequest("GET", "/api/v1/profession/Teacher", nil)
+		if err != nil {
+			t.Fatalf("%s\n", err.Error())
+		}
+
+		res, err := app.Test(req, -1)
+		assert.Nil(t, err)
+		assert.Equal(t, 200, res.StatusCode)
+
+		data, err := io.ReadAll(res.Body)
+		if err != nil {
+			t.Fatalf("%s\n", err.Error())
+		}
+		defer res.Body.Close()
+
+		m := fiber.Map{}
+		err = json.Unmarshal(data, &m)
+		if err != nil {
+			t.Fatalf("%s\n", err.Error())
+		}
+
+		t.Logf("%+v\n", m)
+
+		data2, err := json.Marshal(m["data"])
+		if err != nil {
+			t.Fatalf("%s\n", err.Error())
+		}
+
+		err = json.Unmarshal(data2, obj)
+		if err != nil {
+			t.Fatalf("%s\n", err.Error())
+		}
+	})
+
+	t.Run("Test Profession Delete", func(t *testing.T) {
+		req, err := http.NewRequest("DELETE", "/api/v1/profession/Teacher", nil)
 		if err != nil {
 			t.Fatalf("%s\n", err.Error())
 		}

@@ -8,11 +8,11 @@ import (
 
 type Applicant struct {
 	gorm.Model
-	Name        string       `gorm:"size:50" json:"name"`
-	Birth       time.Time    `json:"birth"`
-	Email       string       `gorm:"uniqueIndex" json:"email"`
-	CPF         string       `gorm:"size:11;primaryKey" json:"cpf"`
-	Professions []Profession `gorm:"foreignKey:ApplicantID" json:"professions"`
+	Name        string        `gorm:"size:50" json:"name"`
+	Birth       time.Time     `json:"birth"`
+	Email       string        `gorm:"uniqueIndex" json:"email"`
+	CPF         string        `gorm:"size:11;primaryKey" json:"cpf"`
+	Professions []*Profession `gorm:"many2many:applicant_professions;"`
 }
 
 type Concourse struct {
@@ -25,13 +25,15 @@ type Concourse struct {
 
 type Vacancy struct {
 	gorm.Model
-	ConcID int       `gorm:"uniqueIndex"`
-	Conc   Concourse `gorm:"foreignKey:ConcID"`
-	Name   string    `gorm:"uniqueIndex" json:"name"`
+	ConcID         uint       `gorm:"uniqueIndex"`
+	Conc           Concourse  `gorm:"foreignKey:ConcID"`
+	ProfessionName string     `gorm:"uniqueIndex"`
+	Profession     Profession `gorm:"foreignKey:ProfessionName"`
 }
 
 type Profession struct {
 	gorm.Model
-	ApplicantID uint
-	Name        string `json:"name"`
+	NameSlug   string       `gorm:"primaryKey,uniqueIndex" json:"name_slug"`
+	Name       string       `gorm:"uniqueIndex" json:"name"`
+	Applicants []*Applicant `gorm:"many2many:applicant_professions;"`
 }

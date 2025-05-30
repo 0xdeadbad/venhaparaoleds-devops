@@ -2,7 +2,6 @@ package routes
 
 import (
 	"encoding/json"
-	"log"
 
 	"github.com/0xdeadbad/venhaparaoleds-devops/models"
 	"github.com/gofiber/fiber/v2"
@@ -11,8 +10,21 @@ import (
 
 func MainRouter(r fiber.Router, db *gorm.DB) error {
 	prof := r.Group("/profession")
-	appl := r.Group("/applicant")
-	conc := r.Group("/concourse")
+
+	appl := r.Group("/applicant", func(c *fiber.Ctx) error {
+		c.Accepts("json", "text")
+		c.Accepts("application/json")
+
+		return c.Next()
+	})
+
+	conc := r.Group("/concourse", func(c *fiber.Ctx) error {
+		c.Accepts("json", "text")
+		c.Accepts("application/json")
+
+		return c.Next()
+	})
+
 	vac := r.Group("/vacancy")
 
 	if err := applicantRouter(appl, db); err != nil {
@@ -36,11 +48,8 @@ func MainRouter(r fiber.Router, db *gorm.DB) error {
 
 func applicantRouter(applicant fiber.Router, db *gorm.DB) error {
 	applicant.Get("/:cpf", func(c *fiber.Ctx) error {
-		c.Accepts("json", "text")
-		c.Accepts("application/json")
-
 		var cpf string
-		objs := new([]models.Profession)
+		// objs := new([]models.Profession)
 		obj := new(models.Applicant)
 
 		if cpf = c.Params("cpf"); cpf == "" {
@@ -51,11 +60,18 @@ func applicantRouter(applicant fiber.Router, db *gorm.DB) error {
 		}
 		obj.CPF = cpf
 
-		db.Model(obj).Association("Professions")
-		if err := db.Model(obj).Association("Professions").Find(objs); err != nil {
+		res := db.First(obj)
+		if err := res.Error; err != nil {
 			return c.Status(400).JSON(fiber.Map{
 				"status":  "error",
 				"message": err.Error(),
+			})
+		}
+
+		if count := res.RowsAffected; count <= 0 {
+			return c.Status(404).JSON(fiber.Map{
+				"status":  "error",
+				"message": "record not found",
 			})
 		}
 
@@ -83,7 +99,6 @@ func applicantRouter(applicant fiber.Router, db *gorm.DB) error {
 
 	applicant.Post("/", func(c *fiber.Ctx) error {
 		obj := new(models.Applicant)
-		// data := c.Body()
 
 		if err := c.BodyParser(obj); err != nil {
 			return c.Status(400).JSON(fiber.Map{
@@ -101,8 +116,8 @@ func applicantRouter(applicant fiber.Router, db *gorm.DB) error {
 		}
 
 		return c.Status(200).JSON(fiber.Map{
-			"status": "success",
-			"data":   obj,
+			"status":   "success",
+			"affected": res.RowsAffected,
 		})
 	})
 
@@ -137,7 +152,7 @@ func applicantRouter(applicant fiber.Router, db *gorm.DB) error {
 
 	applicant.Delete("/:cpf", func(c *fiber.Ctx) error {
 		var cpf string
-		obj := new(models.Applicant)
+		// obj := new(models.Applicant)
 
 		if cpf = c.Params("cpf"); cpf == "" {
 			return c.Status(400).JSON(fiber.Map{
@@ -145,9 +160,9 @@ func applicantRouter(applicant fiber.Router, db *gorm.DB) error {
 				"message": "invalid cpf parameter",
 			})
 		}
-		obj.CPF = cpf
+		// obj.CPF = cpf
 
-		res := db.Delete(obj)
+		res := db.Delete(&models.Applicant{}, cpf)
 		if res.Error != nil {
 			return c.Status(400).JSON(fiber.Map{
 				"status":  "error",
@@ -155,12 +170,16 @@ func applicantRouter(applicant fiber.Router, db *gorm.DB) error {
 			})
 		}
 
-		count := res.Statement.RowsAffected
-
-		log.Printf("}}}}}}}}%d\n", count)
+		if res.RowsAffected <= 0 {
+			return c.Status(404).JSON(fiber.Map{
+				"status":  "error",
+				"message": "record not found",
+			})
+		}
 
 		return c.Status(200).JSON(fiber.Map{
-			"status": "success",
+			"status":   "success",
+			"affected": res.RowsAffected,
 		})
 	})
 
@@ -169,9 +188,6 @@ func applicantRouter(applicant fiber.Router, db *gorm.DB) error {
 
 func concourseRouter(concourse fiber.Router, db *gorm.DB) error {
 	concourse.Get("/:code", func(c *fiber.Ctx) error {
-		c.Accepts("json", "text")
-		c.Accepts("application/json")
-
 		var code string
 		obj := new(models.Concourse)
 
@@ -241,31 +257,6 @@ func concourseRouter(concourse fiber.Router, db *gorm.DB) error {
 		var code string
 		obj := new(models.Concourse)
 
-		if code = c.Params("code"); code == "" {
-			return c.Status(400).JSON(fiber.Map{
-				"status":  "error",
-				"message": "invalid code parameter",
-			})
-		}
-		obj.ConcCode = code
-
-		res := db.Delete(obj)
-		if res.Error != nil {
-			return c.Status(400).JSON(fiber.Map{
-				"status":  "error",
-				"message": res.Error.Error(),
-			})
-		}
-
-		return c.Status(200).JSON(fiber.Map{
-			"status": "success",
-		})
-	})
-
-	concourse.Delete("/:code", func(c *fiber.Ctx) error {
-		var code string
-		obj := new(models.Concourse)
-
 		if code = c.Params("cpf"); code == "" {
 			return c.Status(400).JSON(fiber.Map{
 				"status":  "error",
@@ -282,26 +273,139 @@ func concourseRouter(concourse fiber.Router, db *gorm.DB) error {
 			})
 		}
 
-		count := new(int64)
-		res.Count(count)
-
-		log.Printf("[[[[[[]]]]]]%d\n", count)
+		if res.RowsAffected <= 0 {
+			return c.Status(404).JSON(fiber.Map{
+				"status":   "error",
+				"affected": res.RowsAffected,
+			})
+		}
 
 		return c.Status(200).JSON(fiber.Map{
 			"status":   "success",
-			"affected": count,
+			"affected": res.RowsAffected,
 		})
 	})
 
 	return nil
 }
 
-func vacancyRouter(r fiber.Router, db *gorm.DB) error {
+func vacancyRouter(vacancy fiber.Router, db *gorm.DB) error {
+	vacancy.Get("/:name", func(c *fiber.Ctx) error {
+		// var name string
+		// obj := new(models.Vacancy)
+
+		// if id = c.Params("name"); name == "" {
+		// 	return c.Status(400).JSON(fiber.Map{
+		// 		"status":  "error",
+		// 		"message": "invalid cpf parameter",
+		// 	})
+		// }
+
+		return nil
+	})
 
 	return nil
 }
 
-func professionRouter(r fiber.Router, db *gorm.DB) error {
+func professionRouter(profession fiber.Router, db *gorm.DB) error {
+	profession.Get("/:name_slug", func(c *fiber.Ctx) error {
+		var name_slug string
+		obj := new(models.Profession)
+
+		if name_slug = c.Params("name_slug"); name_slug == "" {
+			return c.Status(400).JSON(fiber.Map{
+				"status":  "error",
+				"message": "invalid cpf parameter",
+			})
+		}
+		obj.NameSlug = name_slug
+
+		res := db.First(obj)
+		if err := res.Error; err != nil {
+			return c.Status(400).JSON(fiber.Map{
+				"status":  "error",
+				"message": err.Error(),
+			})
+		}
+
+		data, err := json.Marshal(obj)
+		if err != nil {
+			return c.Status(400).JSON(fiber.Map{
+				"status":  "error",
+				"message": err.Error(),
+			})
+		}
+
+		m := fiber.Map{}
+		if err := json.Unmarshal(data, &m); err != nil {
+			return c.Status(400).JSON(fiber.Map{
+				"status":  "error",
+				"message": err.Error(),
+			})
+		}
+
+		return c.Status(200).JSON(fiber.Map{
+			"status": "success",
+			"data":   m,
+		})
+	})
+
+	profession.Post("/", func(c *fiber.Ctx) error {
+		obj := new(models.Profession)
+
+		if err := c.BodyParser(obj); err != nil {
+			return c.Status(400).JSON(fiber.Map{
+				"status":  "error",
+				"message": err.Error(),
+			})
+		}
+
+		res := db.Create(obj)
+		if res.Error != nil {
+			return c.Status(400).JSON(fiber.Map{
+				"status":  "error",
+				"message": res.Error.Error(),
+			})
+		}
+
+		return c.Status(200).JSON(fiber.Map{
+			"status":   "success",
+			"affected": res.RowsAffected,
+		})
+	})
+
+	profession.Delete("/:name_slug", func(c *fiber.Ctx) error {
+		var name_slug string
+		obj := new(models.Profession)
+
+		if name_slug = c.Params("name_slug"); name_slug == "" {
+			return c.Status(400).JSON(fiber.Map{
+				"status":  "error",
+				"message": "invalid cpf parameter",
+			})
+		}
+		obj.NameSlug = name_slug
+
+		res := db.Delete(obj).Where("name_slug = ?", name_slug)
+		if res.Error != nil {
+			return c.Status(400).JSON(fiber.Map{
+				"status":  "error",
+				"message": res.Error.Error(),
+			})
+		}
+
+		if res.RowsAffected <= 0 {
+			return c.Status(404).JSON(fiber.Map{
+				"status":   "error",
+				"affected": res.RowsAffected,
+			})
+		}
+
+		return c.Status(200).JSON(fiber.Map{
+			"status":   "success",
+			"affected": res.RowsAffected,
+		})
+	})
 
 	return nil
 }

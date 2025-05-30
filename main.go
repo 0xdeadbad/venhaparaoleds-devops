@@ -44,6 +44,7 @@ func init() {
 // @BasePath /
 func main() {
 	var POSTGRES_HOSTNAME, POSTGRES_PASSWORD, POSTGRES_USER, POSTGRES_PORT, POSTGRES_SSL, POSTGRES_DB string
+	var LISTEN_ADDR string
 
 	app := fiber.New()
 
@@ -64,12 +65,18 @@ func main() {
 	}
 	if POSTGRES_PORT, ok = os.LookupEnv("POSTGRES_PORT"); !ok {
 		log.Println("POSTGRES_PORT env variable not set. Using default port: 5432")
+		POSTGRES_PORT = "5432"
 	}
 	if POSTGRES_SSL, ok = os.LookupEnv("POSTGRES_SSL"); !ok {
 		log.Println("POSTGRES_SSL env variable not set. Using default value: false")
+		POSTGRES_SSL = "false"
 	}
 	if POSTGRES_DB, ok = os.LookupEnv("POSTGRES_DB"); !ok {
 		log.Fatalln("POSTGRES_DB env variable not set")
+	}
+	if LISTEN_ADDR, ok = os.LookupEnv("LISTEN_ADDR"); !ok {
+		log.Println("LISTEN_ADDR env variable not set. Using default: :8080")
+		LISTEN_ADDR = ":8080"
 	}
 
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=%s", POSTGRES_HOSTNAME, POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB, POSTGRES_PORT, POSTGRES_SSL)
@@ -96,7 +103,7 @@ func main() {
 
 	done := make(chan any, 1)
 	go func() {
-		if err := app.Listen(":3000"); err != nil {
+		if err := app.Listen(LISTEN_ADDR); err != nil {
 			fmt.Printf("%+v\n", err)
 		}
 		done <- struct{}{}

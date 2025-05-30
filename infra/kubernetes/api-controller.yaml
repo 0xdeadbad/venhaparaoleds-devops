@@ -1,0 +1,22 @@
+kind: ReplicationController
+apiVersion: v1
+metadata:
+  name: ledsproj
+  namespace: leds
+  labels:
+    app: ledsproj
+spec:
+  replicas: 1
+  selector:
+    app: ledsproj
+  template:
+    metadata:
+      labels:
+        app: ledsproj
+    spec:
+      containers:
+      - name: ledsproj
+        image: ledsproj:latest
+        ports:
+        - name: ledsproj-api
+          containerPort: 8080

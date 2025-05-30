@@ -8,8 +8,8 @@ COPY . .
 # RUN go mod tidy
 RUN CGO=0 go build -mod=vendor -ldflags "-s -w" -o ledsproj .
 
-FROM alpine:3.21
+FROM scratch
 
-COPY --from=build /usr/local/ledsproj/ledsproj /usr/local/bin
+COPY --from=build /usr/local/ledsproj/ledsproj /ledsproj
 
-ENTRYPOINT [ "ledsproj" ]
+ENTRYPOINT [ "/ledsproj" ]
