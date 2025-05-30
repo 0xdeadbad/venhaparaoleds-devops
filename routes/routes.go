@@ -162,7 +162,7 @@ func applicantRouter(applicant fiber.Router, db *gorm.DB) error {
 		}
 		// obj.CPF = cpf
 
-		res := db.Delete(&models.Applicant{}, cpf)
+		res := db.Where("cpf = ?", cpf).Delete(&models.Applicant{})
 		if res.Error != nil {
 			return c.Status(400).JSON(fiber.Map{
 				"status":  "error",
@@ -255,17 +255,15 @@ func concourseRouter(concourse fiber.Router, db *gorm.DB) error {
 
 	concourse.Delete("/:code", func(c *fiber.Ctx) error {
 		var code string
-		obj := new(models.Concourse)
 
-		if code = c.Params("cpf"); code == "" {
+		if code = c.Params("code"); code == "" {
 			return c.Status(400).JSON(fiber.Map{
 				"status":  "error",
-				"message": "invalid cpf parameter",
+				"message": "invalid code parameter",
 			})
 		}
-		obj.ConcCode = code
 
-		res := db.Delete(obj)
+		res := db.Where("conc_code = ?", code).Delete(&models.Concourse{})
 		if res.Error != nil {
 			return c.Status(400).JSON(fiber.Map{
 				"status":  "error",
@@ -315,16 +313,22 @@ func professionRouter(profession fiber.Router, db *gorm.DB) error {
 		if name_slug = c.Params("name_slug"); name_slug == "" {
 			return c.Status(400).JSON(fiber.Map{
 				"status":  "error",
-				"message": "invalid cpf parameter",
+				"message": "invalid name slug parameter",
 			})
 		}
-		obj.NameSlug = name_slug
 
-		res := db.First(obj)
+		res := db.Where("name_slug = ?", name_slug).First(obj)
 		if err := res.Error; err != nil {
 			return c.Status(400).JSON(fiber.Map{
 				"status":  "error",
 				"message": err.Error(),
+			})
+		}
+
+		if res.RowsAffected <= 0 {
+			return c.Status(404).JSON(fiber.Map{
+				"status":  "error",
+				"message": "record not found",
 			})
 		}
 
@@ -369,8 +373,7 @@ func professionRouter(profession fiber.Router, db *gorm.DB) error {
 		}
 
 		return c.Status(200).JSON(fiber.Map{
-			"status":   "success",
-			"affected": res.RowsAffected,
+			"status": "success",
 		})
 	})
 
@@ -386,7 +389,7 @@ func professionRouter(profession fiber.Router, db *gorm.DB) error {
 		}
 		obj.NameSlug = name_slug
 
-		res := db.Delete(obj).Where("name_slug = ?", name_slug)
+		res := db.Where("name_slug = ?", name_slug).Delete(obj)
 		if res.Error != nil {
 			return c.Status(400).JSON(fiber.Map{
 				"status":  "error",

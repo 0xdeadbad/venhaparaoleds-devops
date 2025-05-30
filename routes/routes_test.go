@@ -154,7 +154,7 @@ func TestApplicant(t *testing.T) {
 			t.Fatalf("%s\n", err.Error())
 		}
 
-		t.Logf("%+v\n", m)
+		// t.Logf("%+v\n", m)
 	})
 
 	defer app.Shutdown()
@@ -244,7 +244,7 @@ func TestConcourse(t *testing.T) {
 			t.Fatalf("%s\n", err.Error())
 		}
 
-		t.Logf("%+v\n", m)
+		// t.Logf("%+v\n", m)
 
 		data2, err := json.Marshal(m["data"])
 		if err != nil {
@@ -277,6 +277,7 @@ func TestConcourse(t *testing.T) {
 	t.Run("Test Profession POST", func(t *testing.T) {
 		i = &models.Profession{
 			Name:       "Teacher",
+			NameSlug:   "Teacher",
 			Applicants: []*models.Applicant{},
 		}
 
@@ -286,7 +287,7 @@ func TestConcourse(t *testing.T) {
 		}
 
 		b := bytes.NewReader(data)
-		req, err := http.NewRequest("POST", "/api/v1/professon", b)
+		req, err := http.NewRequest("POST", "/api/v1/profession", b)
 		if err != nil {
 			t.Fatalf("%s\n", err.Error())
 		}
@@ -320,7 +321,7 @@ func TestConcourse(t *testing.T) {
 			t.Fatalf("%s\n", err.Error())
 		}
 
-		t.Logf("%+v\n", m)
+		// t.Logf("%+v\n", m)
 
 		data2, err := json.Marshal(m["data"])
 		if err != nil {
