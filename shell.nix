@@ -7,11 +7,19 @@
     }
   ),
 }:
+let
+  ledsproj = (
+    import ./default.nix {
+      inherit pkgs;
+    }
+  );
+in
 pkgs.mkShell {
   packages = [
-    go
     pkgs.yaml-language-server
     pkgs.gopls
+    ledsproj
+    go
   ];
 
   shellHook = ''
