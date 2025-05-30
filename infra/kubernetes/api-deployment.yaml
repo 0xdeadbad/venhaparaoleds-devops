@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ledsproj
+  namespace: leds
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ledsproj
+  template:
+    metadata:
+      labels:
+        app: ledsproj
+    spec:
+      containers:
+        - name: ledsproj
+          image: ledsproj:thin
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5432
+          envFrom:
+            - configMapRef:
+                name: postgres-env-secrets

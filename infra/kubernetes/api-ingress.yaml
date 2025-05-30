@@ -1,0 +1,18 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: proj-ingress
+  namespace: leds
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: ledsproj.duckdns.org
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: ledsproj
+                port:
+                  number: 8080
