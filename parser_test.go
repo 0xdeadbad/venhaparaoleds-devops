@@ -66,7 +66,7 @@ func TestCParser(t *testing.T) {
 	})
 
 	t.Run("Test cParser example", func(t *testing.T) {
-		c := newCParser("Jackie Dawson,14/08/1970,311.667.973-47,[marceneiro, assistente administrativo]")
+		c := newCParser("Jackie Dawson,14/08/1970,311.667.973-47,[marceneiro, assistente administrativo]\nCory Mendoza,11/02/1957,565.512.353-92,[carpinteiro, marceneiro]")
 		vt1, v1 := c.Next()
 		assert.Equal(t, Str, vt1, fmt.Sprintf("type should been Str, got %s\n", vt1))
 		assert.Equal(t, "Jackie Dawson", v1, "type value should been \"Jackie Dawson\"")
@@ -82,6 +82,37 @@ func TestCParser(t *testing.T) {
 		vt4, v4 := c.Next()
 		assert.Equal(t, ListStr, vt4, fmt.Sprintf("type should been ListStr, got %s\n", vt4))
 		assert.Equal(t, []string{"marceneiro", "assistente administrativo"}, v4, "type value should been \"[marceneiro, assistente administrativo]\"")
+
+		vt5, v5 := c.Next()
+		assert.Equal(t, Str, vt5, fmt.Sprintf("type should been Str, got %s\n", vt5))
+		assert.Equal(t, "Cory Mendoza", v5, "type value should been \"Cory Mendoza\"")
+
+		vt6, v6 := c.Next()
+		assert.Equal(t, Str, vt6, fmt.Sprintf("type should been Str, got %s\n", vt5))
+		assert.Equal(t, "11/02/1957", v6, "type value should been \"11/02/1957\"")
+
+		vt7, v7 := c.Next()
+		assert.Equal(t, Str, vt7, fmt.Sprintf("type should been Str, got %s\n", vt5))
+		assert.Equal(t, "565.512.353-92", v7, "type value should been \"\"565.512.353-92\"")
+
+		vt8, v8 := c.Next()
+		assert.Equal(t, ListStr, vt8, fmt.Sprintf("type should been ListStr, got %s\n", vt8))
+		assert.Equal(t, []string{"carpinteiro", "marceneiro"}, v8, "type value should been \"[carpinteiro, marceneiro]\"")
+
+		eof, v := c.Next()
+		assert.Equal(t, Eof, eof, fmt.Sprintf("last Next() should return Eof, got %s: %+v", eof, v))
+	})
+
+	t.Run("Test cParser multiline", func(t *testing.T) {
+		src := `lindsey craft,19/05/1976,182.845.084-34,[carpinteiro]
+Jackie dawson,14/08/1970,311.667.973-47,[marceneiro, assistente administrativo]
+Cory mendoza,11/02/1957,565.512.353-92,[carpinteiro, marceneiro]`
+
+		c := newCParser(src)
+
+		for t, _ := c.Next(); t != Eof; {
+			t, _ = c.Next()
+		}
 	})
 
 }

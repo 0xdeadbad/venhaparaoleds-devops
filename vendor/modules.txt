@@ -26,11 +26,9 @@ github.com/go-openapi/swag
 github.com/gofiber/fiber/v2
 github.com/gofiber/fiber/v2/internal/schema
 github.com/gofiber/fiber/v2/log
-github.com/gofiber/fiber/v2/middleware/filesystem
 github.com/gofiber/fiber/v2/utils
 # github.com/gofiber/swagger v1.1.1
 ## explicit; go 1.18
-github.com/gofiber/swagger
 # github.com/google/uuid v1.6.0
 ## explicit
 github.com/google/uuid
@@ -117,7 +115,6 @@ github.com/stretchr/testify/assert
 github.com/stretchr/testify/assert/yaml
 # github.com/swaggo/files/v2 v2.0.2
 ## explicit; go 1.16
-github.com/swaggo/files/v2
 # github.com/swaggo/swag v1.16.4
 ## explicit; go 1.18
 github.com/swaggo/swag

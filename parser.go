@@ -42,9 +42,9 @@ func newCParser(src string) *cParser {
 func (c *cParser) Next() (cType, any) {
 	for c.current < len(c.src) {
 		switch c.src[c.current] {
-		case ']', ',':
+		case ']', ',', ' ', '\n', '\t':
 			c.current += 1
-			if c.src[c.current] == ' ' || c.src[c.current] == '\t' {
+			if c.src[c.current] == ' ' || c.src[c.current] == '\t' || c.src[c.current] == '\n' {
 				c.SkipWhitespace()
 			}
 			return c.Next()
@@ -61,7 +61,7 @@ func (c *cParser) Next() (cType, any) {
 
 func (c *cParser) ParseStr() string {
 	var str string
-	for c.current < len(c.src) && c.src[c.current] != ',' && c.src[c.current] != '[' && c.src[c.current] != ']' {
+	for c.current < len(c.src) && c.current <= c.NextBreak() && c.src[c.current] != ',' && c.src[c.current] != '[' && c.src[c.current] != ']' && c.src[c.current] != '\n' {
 		str += string(c.src[c.current])
 		c.current += 1
 	}
@@ -71,7 +71,7 @@ func (c *cParser) ParseStr() string {
 
 func (c *cParser) ParseListStr() []string {
 	var lstr []string
-	for c.current < len(c.src) && c.src[c.current] != ']' {
+	for c.current < len(c.src) && c.current < c.NextBreak() && c.src[c.current] != ']' && c.src[c.current] != '\n' {
 		c.SkipWhitespace()
 		s := c.ParseStr()
 		lstr = append(lstr, s)
@@ -85,4 +85,13 @@ func (c *cParser) SkipWhitespace() {
 	for c.src[c.current] == ' ' || c.src[c.current] == '\t' {
 		c.current += 1
 	}
+}
+
+func (c *cParser) NextBreak() int {
+	i := 0
+	for i = c.current; i < len(c.src) && i != '\n'; {
+		i += 1
+	}
+
+	return i
 }
