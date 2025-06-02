@@ -21,7 +21,7 @@ services:
         image: nginx:1.27.5-alpine
         restart: always
         ports:
-            - 8080:8080
+            - 80:8080
         networks:
             - default
             - internal

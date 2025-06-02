@@ -13,7 +13,6 @@ import (
 	"github.com/0xdeadbad/venhaparaoleds-devops/models"
 	"github.com/0xdeadbad/venhaparaoleds-devops/routes"
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/swagger"
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -48,12 +47,12 @@ func main() {
 
 	app := fiber.New()
 
-	cfg := swagger.Config{
-		Title: "Swagger API Docs",
-		URL:   "",
-	}
+	// cfg := swagger.Config{
+	// 	Title: "Swagger API Docs",
+	// 	URL:   "",
+	// }
 
-	app.Use(swagger.New(cfg))
+	// app.Use(swagger.New())
 
 	// api.AddApiGroup(app, crud)
 
@@ -83,7 +82,7 @@ func main() {
 	}
 	if LISTEN_ADDR, ok = os.LookupEnv("LISTEN_ADDR"); !ok {
 		log.Println("LISTEN_ADDR env variable not set. Using default: :8080")
-		LISTEN_ADDR = ":8080"
+		LISTEN_ADDR = "0.0.0.0:8080"
 	}
 
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=%s", POSTGRES_HOSTNAME, POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB, POSTGRES_PORT, POSTGRES_SSL)
@@ -106,7 +105,7 @@ func main() {
 
 	routes.MainRouter(v1, db)
 
-	app.Get("/swagger/*", swagger.HandlerDefault)
+	// v1.Get("/swagger/*", swagger.HandlerDefault)
 
 	done := make(chan any, 1)
 	go func() {
