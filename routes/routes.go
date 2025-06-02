@@ -60,13 +60,18 @@ func applicantRouter(applicant fiber.Router, db *gorm.DB) error {
 		}
 		obj.CPF = cpf
 
-		res := db.First(obj)
+		res := db.Where("cpf = ?", cpf).Preload("Professions").First(obj)
 		if err := res.Error; err != nil {
 			return c.Status(400).JSON(fiber.Map{
 				"status":  "error",
 				"message": err.Error(),
 			})
 		}
+
+		// var profs []models.Profession
+		// err := db.Model(obj).Related()
+
+		// log.Printf("%+v\n", obj.Professions)
 
 		if count := res.RowsAffected; count <= 0 {
 			return c.Status(404).JSON(fiber.Map{
