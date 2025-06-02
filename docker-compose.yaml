@@ -8,6 +8,9 @@ services:
             - internal
         depends_on:
             - db
+        volumes:
+            - ./candidatos.txt:/candidatos.txt:ro
+            - ./concursos.txt:/concursos.txt:ro
 
     db:
         image: postgres:17.5-alpine

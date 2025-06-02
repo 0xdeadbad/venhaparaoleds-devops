@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"os/signal"
@@ -29,6 +30,44 @@ func init() {
 	if err != nil {
 		log.Println(".env file couldn't be loaded.")
 	}
+}
+
+func loadData(db *gorm.DB) error {
+
+	fCandidates, err := os.Open("candidatos.txt")
+	if err != nil {
+		return err
+	}
+	defer fCandidates.Close()
+
+	fConcourses, err := os.Open("concursos.txt")
+	if err != nil {
+		return err
+	}
+	defer fConcourses.Close()
+
+	candidatesData, err := io.ReadAll(fCandidates)
+	if err != nil {
+		return err
+	}
+
+	concoursesData, err := io.ReadAll(fConcourses)
+	if err != nil {
+		return err
+	}
+
+	candidatesParser := newCParser(string(candidatesData))
+	concoursesParser := newCParser(string(concoursesData))
+
+	for t, v := candidatesParser.Next(); t != Eof; t, v = candidatesParser.Next() {
+		fmt.Println(v)
+	}
+
+	for t, v := concoursesParser.Next(); t != Eof; t, v = concoursesParser.Next() {
+		fmt.Println(v)
+	}
+
+	return nil
 }
 
 // @title Fiber Example API
@@ -94,6 +133,12 @@ func main() {
 	err = db.AutoMigrate(&models.Applicant{}, &models.Concourse{}, &models.Profession{}, &models.Vacancy{})
 	if err != nil {
 		log.Fatalln(err)
+	}
+
+	if _, ok := os.LookupEnv("LOAD_DATA"); ok {
+		if err := loadData(db); err != nil {
+			panic(err)
+		}
 	}
 
 	apiRoute := app.Group("/api")
