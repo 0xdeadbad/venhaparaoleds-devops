@@ -44,6 +44,10 @@ func (c *cParser) Next() (cType, any) {
 		switch c.src[c.current] {
 		case ']', ',', ' ', '\n', '\t':
 			c.current += 1
+			if c.current >= len(c.src) {
+				return Eof, nil
+			}
+
 			if c.src[c.current] == ' ' || c.src[c.current] == '\t' || c.src[c.current] == '\n' {
 				c.SkipWhitespace()
 			}
@@ -91,6 +95,10 @@ func (c *cParser) NextBreak() int {
 	i := 0
 	for i = c.current; i < len(c.src) && i != '\n'; {
 		i += 1
+	}
+
+	if i >= len(c.src) {
+		i = len(c.src) - 1
 	}
 
 	return i
