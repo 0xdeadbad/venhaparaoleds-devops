@@ -54,7 +54,7 @@ func TestApplicant(t *testing.T) {
 	g := &models.Applicant{}
 
 	t.Run("Test Applicant POST", func(t *testing.T) {
-		profs := []*models.Profession{
+		profs := []models.Profession{
 			{
 				Name: "test1",
 			},
@@ -132,7 +132,10 @@ func TestApplicant(t *testing.T) {
 			t.Fatalf("%s\n", err.Error())
 		}
 
-		// t.Logf("-------------%+v\n", obj)
+		if len(obj.Professions) != 2 {
+			t.Fatalf("There should be at least 2 Professions from the previous POST test, got %d\n", len(obj.Professions))
+		}
+
 	})
 
 	t.Run("Test Applicant Delete", func(t *testing.T) {
@@ -276,9 +279,9 @@ func TestConcourse(t *testing.T) {
 
 	t.Run("Test Profession POST", func(t *testing.T) {
 		i = &models.Profession{
-			Name:       "Teacher",
-			NameSlug:   "Teacher",
-			Applicants: []*models.Applicant{},
+			Name:     "Teacher",
+			NameSlug: "Teacher",
+			// Applicants: []models.Applicant{},
 		}
 
 		data, err := json.Marshal(i)
