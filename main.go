@@ -48,6 +48,13 @@ func main() {
 
 	app := fiber.New()
 
+	cfg := swagger.Config{
+		Title: "Swagger API Docs",
+		URL:   "",
+	}
+
+	app.Use(swagger.New(cfg))
+
 	// api.AddApiGroup(app, crud)
 
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
